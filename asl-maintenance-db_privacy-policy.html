@@ -105,7 +105,7 @@
   <p>ASL Maintenance DB is an internal maintenance-management app built for employees of <strong>Aarti Steels Limited</strong>. It is not distributed to the general public and is intended only for authorised staff to log equipment maintenance records, raise requests, and receive maintenance alerts. This policy explains what data the app collects, how it is processed, and where it is stored.</p>
 
   <h2>1. Who Can Use This App</h2>
-  <p>Access is restricted to registered employees of Aarti Steels Limited. An administrator or the employee themselves creates an account before the app can be used. This app is not intended for use by the general public or by children.</p>
+  <p>Access is restricted to registered employees of Aarti Steels Limited. Employee themselves creates an account before the app can be used. This app is not intended for use by the general public or by children.</p>
 
   <h2>2. Information Collected at Registration</h2>
   <p>When an employee account is created, the following information is collected and stored:</p>
@@ -122,11 +122,11 @@
   <p>As part of normal use, the app stores the maintenance and equipment records employees create, including:</p>
   <ul>
     <li>Equipment/asset entries added to the database</li>
-    <li>Maintenance logs and request details (description, status, department routing)</li>
+    <li>Maintenance logs (description, status, department)</li>
     <li>Photos attached to a database entry or log (see Section 5)</li>
     <li>GPS coordinates attached to an entry at the time it is created (see Section 6)</li>
   </ul>
-  <p>This data is used solely to run the maintenance workflow for Aarti Steels Limited and is visible to authorised staff and administrators within the organisation.</p>
+  <p>This data is used solely to run the maintenance workflow for Aarti Steels Limited and is visible to authorised staff and admin (Central Maintenance) within the organisation.</p>
 
   <h2>4. Permissions Used and Why</h2>
   <table>
@@ -138,11 +138,10 @@
     <tr><td>Camera</td><td>Lets you photograph equipment or maintenance issues directly into a record</td></tr>
     <tr><td>Read Media — Images / Video, Read External Storage</td><td>Lets you attach existing photos or videos from your device to a record</td></tr>
     <tr><td>Access Fine / Coarse Location</td><td>Tags the GPS coordinates of the equipment or issue at the moment you create a log or database entry</td></tr>
-    <tr><td>Access Background Location</td><td>Currently declared in the app but not used by any feature — the app only reads your location once, at the moment you tap to add an entry, never in the background</td></tr>
   </table>
 
   <h2>5. Camera, Photos & Attachments</h2>
-  <p>You can attach a photo (taken with the camera or chosen from your gallery) to an equipment record, log, or request. These photos are uploaded to a private storage bucket on our backend (see Section 7) so that the relevant maintenance team can view them. Photos are not shared outside the organisation.</p>
+  <p>You can attach a photo (taken with the camera or chosen from your gallery) to an equipment record, log. These photos are uploaded to a private storage bucket on our backend (see Section 7) so that the relevant maintenance team can view them. Photos are not shared outside the organisation.</p>
 
   <h2>6. Location Data</h2>
   <p>When you add a database entry or a maintenance log, the app requests your device's current GPS position <strong>once</strong>, at that moment, and stores the coordinates alongside the entry. This is used to record where a piece of equipment or an issue is physically located on-site. The app does <strong>not</strong> track your location continuously or in the background.</p>
@@ -161,7 +160,7 @@
   <p>Passwords are handled by Appwrite's authentication service and are never stored or visible in plain text to the app or its developer. Session tokens are stored securely on your device to keep you signed in between app launches.</p>
 
   <h2>9. Push Notifications</h2>
-  <p>The app uses <strong>Firebase Cloud Messaging</strong> (Google LLC) to deliver maintenance alerts, and <strong>flutter_local_notifications</strong> to schedule and display reminders on-device. A device push token is registered with Firebase so the app can receive these alerts; this token is not used for advertising or shared with any advertising network.</p>
+  <p>The app uses <strong>Firebase Cloud Messaging</strong> (Google LLC) to deliver maintenance alerts. A device push token is registered with Firebase so the app can receive these alerts; this token is not used for advertising or shared with any advertising network.</p>
 
   <h2>10. Exporting & Sharing Reports</h2>
   <p>The app can generate PDF and CSV reports from maintenance data. When you choose to export or share a report, it is handed to your device's standard OS share sheet (e.g. email, WhatsApp, Google Drive) — the app itself does not upload these exports anywhere beyond what you explicitly choose to share.</p>
@@ -183,7 +182,7 @@
   </table>
 
   <h2>13. Data Retention & Deletion</h2>
-  <p>Account and maintenance data is retained for as long as the employee account remains active, or as required for Aarti Steels Limited's operational and record-keeping needs. To request deletion of your account or associated data, contact the administrator at <strong>aarti.maintenance.db@gmail.com</strong>. Requests will be handled within 30 days.</p>
+  <p>Account data as well as equipment and maintenance data is retained for as long as required for Aarti Steels Limited's operational and record-keeping needs. To request deletion of your account or associated data, contact the Central Maintenance department at <strong>aarti.maintenance.db@gmail.com</strong>. Requests will be handled within 30 days.</p>
 
   <h2>14. Children's Privacy</h2>
   <p>This app is intended solely for adult employees of Aarti Steels Limited and is not directed at children. We do not knowingly collect data from anyone under 18 through this app.</p>
