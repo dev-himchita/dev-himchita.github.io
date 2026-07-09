@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — ASL Maintenance DB</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+    color: #222;
+    background: #f7f8fa;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 40px 48px 60px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.04);
+  }
+  h1 {
+    font-size: 28px;
+    margin-bottom: 4px;
+    color: #111;
+  }
+  .meta {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: 42px;
+    margin-bottom: 12px;
+    color: #111;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+  }
+  h3 {
+    font-size: 16px;
+    margin-top: 24px;
+    color: #333;
+  }
+  p { margin: 10px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 6px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 14.5px;
+  }
+  th, td {
+    border: 1px solid #e2e2e2;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f0f2f5;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td {
+    background: #fafafa;
+  }
+  a {
+    color: #1a56db;
+    text-decoration: none;
+  }
+  a:hover { text-decoration: underline; }
+  hr {
+    border: none;
+    border-top: 1px solid #eaeaea;
+    margin: 32px 0;
+  }
+  .footer-note {
+    margin-top: 48px;
+    font-size: 13.5px;
+    color: #777;
+    font-style: italic;
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+  }
+  code {
+    background: #f0f2f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13.5px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Privacy Policy — ASL Maintenance DB</h1>
+  <div class="meta">
+    Last updated: July 2026<br>
+    Developer Name: dev-himchita &nbsp;|&nbsp; Package: <code>com.himadri.asl_maintenance_db</code>
+  </div>
+
+  <h2>Overview</h2>
+  <p>ASL Maintenance DB is an internal maintenance-management app built for employees of <strong>Aarti Steels Limited</strong>. It is not distributed to the general public and is intended only for authorised staff to log equipment maintenance records, raise requests, and receive maintenance alerts. This policy explains what data the app collects, how it is processed, and where it is stored.</p>
+
+  <h2>1. Who Can Use This App</h2>
+  <p>Access is restricted to registered employees of Aarti Steels Limited. An administrator or the employee themselves creates an account before the app can be used. This app is not intended for use by the general public or by children.</p>
+
+  <h2>2. Information Collected at Registration</h2>
+  <p>When an employee account is created, the following information is collected and stored:</p>
+  <ul>
+    <li><strong>Employee ID</strong></li>
+    <li><strong>Full name</strong></li>
+    <li><strong>Email address</strong></li>
+    <li><strong>Phone number</strong></li>
+    <li><strong>Designation / department</strong> (e.g. Mechanical, E&amp;I)</li>
+    <li><strong>Password</strong> — used only to authenticate the account; it is not stored in readable form (see Section 8)</li>
+  </ul>
+
+  <h2>3. Maintenance & Log Data</h2>
+  <p>As part of normal use, the app stores the maintenance and equipment records employees create, including:</p>
+  <ul>
+    <li>Equipment/asset entries added to the database</li>
+    <li>Maintenance logs and request details (description, status, department routing)</li>
+    <li>Photos attached to a database entry or log (see Section 5)</li>
+    <li>GPS coordinates attached to an entry at the time it is created (see Section 6)</li>
+  </ul>
+  <p>This data is used solely to run the maintenance workflow for Aarti Steels Limited and is visible to authorised staff and administrators within the organisation.</p>
+
+  <h2>4. Permissions Used and Why</h2>
+  <table>
+    <tr><th>Permission</th><th>Why it is needed</th></tr>
+    <tr><td>Internet</td><td>Required to sync records with the backend and to receive push notifications</td></tr>
+    <tr><td>Post Notifications</td><td>Displays maintenance alerts and reminders</td></tr>
+    <tr><td>Receive Boot Completed</td><td>Reschedules locally-set reminder notifications after a device reboot</td></tr>
+    <tr><td>Vibrate</td><td>Haptic feedback for alerts</td></tr>
+    <tr><td>Camera</td><td>Lets you photograph equipment or maintenance issues directly into a record</td></tr>
+    <tr><td>Read Media — Images / Video, Read External Storage</td><td>Lets you attach existing photos or videos from your device to a record</td></tr>
+    <tr><td>Access Fine / Coarse Location</td><td>Tags the GPS coordinates of the equipment or issue at the moment you create a log or database entry</td></tr>
+    <tr><td>Access Background Location</td><td>Currently declared in the app but not used by any feature — the app only reads your location once, at the moment you tap to add an entry, never in the background</td></tr>
+  </table>
+
+  <h2>5. Camera, Photos & Attachments</h2>
+  <p>You can attach a photo (taken with the camera or chosen from your gallery) to an equipment record, log, or request. These photos are uploaded to a private storage bucket on our backend (see Section 7) so that the relevant maintenance team can view them. Photos are not shared outside the organisation.</p>
+
+  <h2>6. Location Data</h2>
+  <p>When you add a database entry or a maintenance log, the app requests your device's current GPS position <strong>once</strong>, at that moment, and stores the coordinates alongside the entry. This is used to record where a piece of equipment or an issue is physically located on-site. The app does <strong>not</strong> track your location continuously or in the background.</p>
+
+  <h2>7. Backend & Data Storage — Appwrite</h2>
+  <p>The app stores accounts, maintenance records, and photo attachments using <strong>Appwrite Cloud</strong> (Singapore region), a backend-as-a-service platform:</p>
+  <p><code>sgp.cloud.appwrite.io</code></p>
+  <ul>
+    <li>Account data (Section 2) is stored via Appwrite Authentication.</li>
+    <li>Maintenance/log/database records (Section 3) are stored via Appwrite Databases.</li>
+    <li>Photo attachments (Section 5) are stored via Appwrite Storage, in a private bucket accessible only to authenticated app users.</li>
+  </ul>
+  <p>Appwrite acts as our data processor. Data stored here is only accessible to authenticated employees of Aarti Steels Limited through the app, and to administrators managing the backend.</p>
+
+  <h2>8. Authentication & Password Storage</h2>
+  <p>Passwords are handled by Appwrite's authentication service and are never stored or visible in plain text to the app or its developer. Session tokens are stored securely on your device to keep you signed in between app launches.</p>
+
+  <h2>9. Push Notifications</h2>
+  <p>The app uses <strong>Firebase Cloud Messaging</strong> (Google LLC) to deliver maintenance alerts, and <strong>flutter_local_notifications</strong> to schedule and display reminders on-device. A device push token is registered with Firebase so the app can receive these alerts; this token is not used for advertising or shared with any advertising network.</p>
+
+  <h2>10. Exporting & Sharing Reports</h2>
+  <p>The app can generate PDF and CSV reports from maintenance data. When you choose to export or share a report, it is handed to your device's standard OS share sheet (e.g. email, WhatsApp, Google Drive) — the app itself does not upload these exports anywhere beyond what you explicitly choose to share.</p>
+
+  <h2>11. Data We Do NOT Collect</h2>
+  <ul>
+    <li>No advertising identifiers, and the app shows no ads</li>
+    <li>No analytics or crash-reporting SDKs are integrated</li>
+    <li>No contacts, call logs, browsing history, or clipboard data</li>
+    <li>No continuous or background location tracking</li>
+  </ul>
+
+  <h2>12. Data Security</h2>
+  <table>
+    <tr><th>Layer</th><th>Protection</th></tr>
+    <tr><td>Account credentials</td><td>Managed by Appwrite Authentication; passwords are never stored in plain text</td></tr>
+    <tr><td>Maintenance data & photos</td><td>Stored in Appwrite Databases/Storage, accessible only to authenticated app users</td></tr>
+    <tr><td>Network transmission</td><td>All communication with Appwrite and Firebase occurs over HTTPS</td></tr>
+  </table>
+
+  <h2>13. Data Retention & Deletion</h2>
+  <p>Account and maintenance data is retained for as long as the employee account remains active, or as required for Aarti Steels Limited's operational and record-keeping needs. To request deletion of your account or associated data, contact the administrator at <strong>aarti.maintenance.db@gmail.com</strong>. Requests will be handled within 30 days.</p>
+
+  <h2>14. Children's Privacy</h2>
+  <p>This app is intended solely for adult employees of Aarti Steels Limited and is not directed at children. We do not knowingly collect data from anyone under 18 through this app.</p>
+
+  <h2>15. Changes to This Policy</h2>
+  <p>We may update this policy as the app's features change. The "Last updated" date at the top will reflect any revisions.</p>
+
+  <h2>16. Contact</h2>
+  <p>For privacy-related questions or data requests, contact: <strong>aarti.maintenance.db@gmail.com</strong></p>
+
+  <div class="footer-note">
+    This privacy policy covers the Android version of ASL Maintenance DB (com.himadri.asl_maintenance_db), an internal application for Aarti Steels Limited.
+  </div>
+
+</div>
+</body>
+</html>
