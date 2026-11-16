@@ -13,7 +13,7 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% -10%,#2b3a5c 0%,
 h1{margin:2px 0 0;font:800 24px Cinzel,Georgia,serif;letter-spacing:.14em;text-transform:uppercase;background:linear-gradient(180deg,#ffe9b0,#e0a43f);-webkit-background-clip:text;background-clip:text;color:transparent}
 #status{min-height:20px;font-size:16px;font-weight:800;color:var(--gold);text-align:center;padding:7px 20px;border-radius:999px;background:#ffffff10;border:1px solid #ffffff18}
 #board{width:var(--bw);height:var(--bw);display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));border:10px solid #5b3a20;border-radius:16px;overflow:hidden;box-sizing:content-box;box-shadow:0 0 0 2px #d9a85f,0 0 0 5px #3a2312,0 24px 50px #000c,inset 0 0 18px #0008}
-.sq{position:relative;overflow:hidden;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--sq)*.76);line-height:1;cursor:pointer;user-select:none}
+.sq{position:relative;overflow:visible;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--sq)*.76);line-height:1;cursor:pointer;user-select:none}
 .sq.l{background:#efe3c6}.sq.d{background:#a67c52}
 .sq.last{box-shadow:inset 0 0 0 100px rgba(255,214,90,.38)}
 .sq.sel{box-shadow:inset 0 0 0 100px rgba(90,210,140,.5)}
@@ -26,15 +26,13 @@ h1{margin:2px 0 0;font:800 24px Cinzel,Georgia,serif;letter-spacing:.14em;text-t
 .w,.b{filter:drop-shadow(0 3px 2px #0006)}
 .w{color:#fffdf5;text-shadow:1px 0 #2a1d14,-1px 0 #2a1d14,0 1px #2a1d14,0 -1px #2a1d14}
 .b{color:#1d1618;text-shadow:0 1px 0 #fff5}
-.mv{animation:pop .28s ease-out}
-@keyframes pop{0%{transform:scale(1.35) translateY(-8%)}100%{transform:none}}
 #ctl{display:flex;flex-direction:column;gap:10px;align-items:center}
 #acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 button{font:800 14px Nunito,system-ui,sans-serif;color:var(--ink);background:#ffffff14;border:1px solid #ffffff26;border-radius:999px;padding:10px 18px;cursor:pointer;transition:.2s}
 button:active{transform:scale(.96)}
 #seg{display:flex;padding:4px;background:#ffffff0d;border:1px solid #ffffff14;border-radius:999px}
 #seg button{background:none;border:none;padding:8px 20px}
-button.on{background:linear-gradient(180deg,#ffd98a,#e8a43a);color:#2a1704;box-shadow:0 4px 12px #e8a43a44}
+#seg button.on,button.on{background:linear-gradient(180deg,#ffd98a,#e8a43a);color:#2a1704;box-shadow:0 4px 12px #e8a43a44}
 #lcard{display:none;width:min(94vw,480px);box-sizing:border-box;text-align:center;font-size:15px;line-height:1.4;padding:16px;border-radius:20px;background:#ffffff0f;border:1px solid #ffffff1c}
 #lcard b{display:block;font:800 18px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--gold);margin-bottom:6px}#lcard p{margin:0 0 12px;opacity:.9}
 #lcard div{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
@@ -139,7 +137,7 @@ const L=[
 ];
 let prog={};try{prog=JSON.parse(localStorage.getItem('chessProg')||'{}')}catch(e){}
 /* UI */
-let S=start(),hist=[],last=null,sel=null,lv=2,busy=false,over=false,pend=null,me='w',pz=null,pdone=false,fb='';
+let anim=null,S=start(),hist=[],last=null,sel=null,lv=2,busy=false,over=false,pend=null,me='w',pz=null,pdone=false,fb='';
 const bd=document.getElementById('board'),stat=document.getElementById('status');
 function status(){if(pz!==null)return fb||('Find the best move for '+(me==='w'?'White':'Black'));const ms=legal(S),ck=inChk(S,S.turn);
  if(!ms.length){over=true;return ck?(S.turn===me?'Checkmate — I win!':'Checkmate — you win! 🎉'):'Stalemate — a draw.'}
@@ -152,12 +150,12 @@ function render(){
   if(last&&(i===last.f||i===last.t))d.classList.add('last');
   if(i===sel)d.classList.add('sel');if(i===ks)d.classList.add('chk');
   if(targets.some(m=>m.t===i)){d.classList.add('tg');if(S.b[i])d.classList.add('cp')}
-  const p=S.b[i];if(p){const s=document.createElement('span');s.className=col(p)+(last&&i===last.t?' mv':'');s.textContent=GL[p.toUpperCase()]+'\uFE0E';d.appendChild(s)}
+  const p=S.b[i];if(p){const s=document.createElement('span');s.className=col(p);if(anim&&last===anim&&i===anim.t){const a=anim,fk=j=>me==='w'?j:63-j,dx=(fk(a.f)&7)-(fk(a.t)&7),dy=(fk(a.f)>>3)-(fk(a.t)>>3);d.style.zIndex=5;s.animate([{transform:`translate(calc(var(--sq)*${dx}),calc(var(--sq)*${dy}))`},{transform:'none'}],{duration:280,easing:'cubic-bezier(.3,.7,.3,1)'})}s.textContent=GL[p.toUpperCase()]+'\uFE0E';d.appendChild(s)}
   if(k%8===0){const e=document.createElement('span');e.className='co r';e.textContent=8-r;d.appendChild(e)}
   if(k>=56){const e=document.createElement('span');e.className='co f';e.textContent='abcdefgh'[c];d.appendChild(e)}
   d.onclick=()=>click(i);bd.appendChild(d)}
  stat.textContent=status();
- for(let k=1;k<4;k++)document.getElementById('l'+k).classList.toggle('on',k===lv)}
+ for(let k=1;k<4;k++)document.getElementById('l'+k).classList.toggle('on',k===lv);anim=null}
 function click(i){
  if(busy||over||pend||pdone||S.turn!==me)return;
  const m=sel!=null&&legal(S).find(m=>m.f===sel&&m.t===i);
@@ -171,8 +169,8 @@ function askPromo(m){pend=m;popts.innerHTML='';
  promo.classList.add('show')}
 function closePromo(){pend=null;promo.classList.remove('show')}
 promo.onclick=e=>{if(e.target===promo)closePromo()};
-function engineMove(){busy=true;render();setTimeout(()=>{const a=pick(S,lv);busy=false;if(a){hist.push(S);S=app(S,a);last=a}render()},60)}
-function play(m){if(pz!==null){chk(m);return}hist.push(S);S=app(S,m);last=m;sel=null;render();
+function engineMove(){busy=true;stat.textContent=status();setTimeout(()=>{const a=pick(S,lv);busy=false;if(a){hist.push(S);S=app(S,a);last=a;anim=a}render()},340)}
+function play(m){anim=m;if(pz!==null){chk(m);return}hist.push(S);S=app(S,m);last=m;sel=null;render();
  if(!over&&S.turn!==me)engineMove()}
 const menu=document.getElementById('menu'),mbox=document.getElementById('mbox'),lc=document.body.classList,$=id=>document.getElementById(id);
 function openMenu(){mbox.innerHTML='';let cm=-1;
