@@ -1,0 +1,657 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Maze Runner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Space+Mono:wght@400;700&display=swap">
+<style>
+/* Minimal layout: title + lantern, stats, clock, square board with level overlay, big touch pad. Single blueprint look by choice. */
+:root {
+  --ink: #0f2038;
+  --panel: #14294a;
+  --line: #d4e4f7;
+  --dim: #8fb0d6;
+  --rule: #34527d;
+  --runner: #ffc233;
+  --exit: #ff6b57;
+  --trail: rgba(255, 194, 51, 0.15);
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--line);
+  font: 15px/1.4 var(--font-display);
+  padding-block: 16px 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { margin: 0; font: 800 clamp(26px, 7vw, 32px)/1 var(--font-display); letter-spacing: -0.015em; }
+button { font: inherit; color: inherit; }
+.chip {
+  font: 400 12px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1.5px solid var(--rule);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.chip[aria-pressed="true"] { border-color: var(--runner); color: var(--runner); }
+.chip:disabled { opacity: 0.45; cursor: default; }
+.hud { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-block: 8px; border-block: 1px solid var(--rule); }
+.k { display: block; font: 400 10px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin-bottom: 4px; }
+.v { display: block; font: 700 17px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; }
+.clock { display: flex; align-items: center; gap: 12px; }
+.time { font: 700 30px/1 var(--font-mono); min-width: 4.4ch; font-variant-numeric: tabular-nums; transition: color 0.3s; }
+.bar { flex: 1; height: 10px; background: var(--panel); border: 1px solid var(--rule); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 100%; background: var(--runner); transform-origin: left center; }
+.bar.low i { background: var(--exit); }
+.time.low { color: var(--exit); }
+.time.up { color: var(--runner); }
+.board {
+  position: relative;
+  width: min(100%, max(260px, calc(100dvh - 370px)));
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border: 1.5px solid var(--rule);
+  background: var(--panel);
+}
+canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.overlay {
+  position: absolute; inset: 0;
+  display: grid; place-content: center; justify-items: center; gap: 10px;
+  padding: 20px; text-align: center;
+  background: rgba(15, 32, 56, 0.9);
+}
+.overlay h2 { margin: 0; font: 800 clamp(26px, 8vw, 36px)/1.05 var(--font-display); }
+.overlay p { margin: 0; color: var(--dim); font: 400 13px/1.5 var(--font-mono); letter-spacing: 0.04em; }
+.overlay p:empty { display: none; }
+.go {
+  margin-top: 6px; padding: 14px 32px;
+  font: 700 16px/1 var(--font-display); letter-spacing: 0.03em;
+  background: var(--runner); color: var(--ink);
+  border: 0; border-radius: 8px; cursor: pointer;
+}
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 84px);
+  gap: 10px;
+  width: min(100%, 360px);
+  margin-inline: auto;
+  touch-action: none;
+  user-select: none; -webkit-user-select: none;
+}
+.dpad button { display: grid; place-items: center; padding: 0; background: var(--panel); border: 2px solid var(--rule); border-radius: 16px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; transition: background 0.08s, border-color 0.08s; }
+.dpad button.on { background: var(--rule); border-color: var(--runner); }
+.dpad svg { width: 40px; height: 40px; fill: none; stroke: var(--line); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.dpad [data-d="0"] { grid-column: 2; grid-row: 1; }
+.dpad [data-d="3"] { grid-column: 1; grid-row: 2; }
+.dpad [data-d="2"] { grid-column: 2; grid-row: 2; }
+.dpad [data-d="1"] { grid-column: 3; grid-row: 2; }
+.dpad [data-d="1"] svg { transform: rotate(90deg); }
+.dpad [data-d="2"] svg { transform: rotate(180deg); }
+.dpad [data-d="3"] svg { transform: rotate(270deg); }
+@media (hover: hover) and (pointer: fine) { .dpad { display: none; } .board { width: min(100%, max(260px, calc(100dvh - 240px))); } }
+button:focus-visible, canvas:focus-visible { outline: 2px solid var(--runner); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Maze Runner</h1>
+    <button class="chip" id="fog" type="button" aria-pressed="false">Lantern off</button>
+  </header>
+
+  <section class="hud" aria-label="Run status">
+    <div><span class="k">Level</span><span class="v" id="lvl">1/20</span></div>
+    <div><span class="k">Grid</span><span class="v" id="grid">10×10</span></div>
+    <div><span class="k">Score</span><span class="v" id="score">0</span></div>
+    <div><span class="k">Best</span><span class="v" id="best">0</span></div>
+  </section>
+
+  <div class="clock">
+    <span class="time" id="time">0.0</span>
+    <div class="bar" id="barwrap"><i id="bar"></i></div>
+  </div>
+
+  <div class="board" id="board">
+    <canvas id="cv" aria-label="Maze. Move with arrow keys, W A S D, or swipe."></canvas>
+    <div class="overlay" id="ov" role="dialog" aria-live="polite">
+      <h2 id="ovT"></h2>
+      <p id="ovP"></p>
+      <button class="go" id="ovB" type="button"></button>
+    </div>
+  </div>
+
+  <div class="dpad" id="dpad" aria-label="Direction pad">
+    <button type="button" data-d="0" aria-label="Up"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+    <button type="button" data-d="3" aria-label="Left"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+    <button type="button" data-d="2" aria-label="Down"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+    <button type="button" data-d="1" aria-label="Right"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const cv = $('cv'), ctx = cv.getContext('2d'), board = $('board');
+  const ov = $('ov'), ovT = $('ovT'), ovP = $('ovP'), ovB = $('ovB');
+  const fogBtn = $('fog'), dpad = $('dpad');
+  const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const css = getComputedStyle(document.documentElement);
+  const tok = (name) => css.getPropertyValue(name).trim();
+  const C = {
+    panel: tok('--panel'), ink: tok('--ink'), line: tok('--line'), dim: tok('--dim'),
+    runner: tok('--runner'), exit: tok('--exit'), trail: tok('--trail')
+  };
+  const inkRGB = [1, 3, 5].map((i) => parseInt(C.ink.slice(i, i + 2), 16)).join(',');
+
+  // Directions: 0 north, 1 east, 2 south, 3 west
+  const DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];
+  const BIT = [1, 2, 4, 8], OPP = [4, 8, 1, 2];
+  const STEP_FIRST = 170, STEP_REPEAT = 82;
+  const MAX_LEVEL = 20, CHECKPOINT_BONUS = 5;
+  const BEST_KEY = 'maze-runner-best';
+
+  let level = 1, n = 10, walls, trail;
+  let startIdx = 0, exitIdx = 0, decoys = [], checkpoints = [], poofs = [], floaters = [];
+  let cx = 0, cy = 0, rx = 0, ry = 0, steps = 0, minSteps = 0, lastDir = null;
+  let timeLimit = 30, timeLeft = 30, upUntil = 0;
+  let state = 'ready'; // ready | playing | won | lost
+  let score = 0, best = 0, fog = false, levelFog = false;
+  let nextStepAt = 0, padDir = null, keyStack = [];
+  let size = 300, cell = 20, onOv = null;
+
+  try { best = parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch (e) { best = 0; }
+  const saveBest = () => { try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} };
+
+  // ---------- Maze generation ----------
+  // Growing-tree from the start cell, with all four sides of the start carved first,
+  // so the run begins with four equally plausible paths.
+  function gen(N, bias, s) {
+    const w = new Uint8Array(N * N).fill(15);
+    const seen = new Uint8Array(N * N);
+    seen[s] = 1;
+    const act = [];
+    const sx = s % N, sy = (s / N) | 0;
+    for (let d = 0; d < 4; d++) {
+      const j = (sy + DY[d]) * N + sx + DX[d];
+      w[s] &= ~BIT[d]; w[j] &= ~OPP[d]; seen[j] = 1; act.push(j);
+    }
+    act.sort(() => Math.random() - 0.5);
+    while (act.length) {
+      const idx = Math.random() < bias ? act.length - 1 : (Math.random() * act.length) | 0;
+      const i = act[idx], x = i % N, y = (i / N) | 0, opts = [];
+      for (let d = 0; d < 4; d++) {
+        const nx = x + DX[d], ny = y + DY[d];
+        if (nx >= 0 && ny >= 0 && nx < N && ny < N && !seen[ny * N + nx]) opts.push(d);
+      }
+      if (!opts.length) { act.splice(idx, 1); continue; }
+      const d = opts[(Math.random() * opts.length) | 0];
+      const j = (y + DY[d]) * N + x + DX[d];
+      w[i] &= ~BIT[d]; w[j] &= ~OPP[d]; seen[j] = 1;
+      act.push(j);
+    }
+    return w;
+  }
+
+  function bfs(w, N, sources) {
+    const dist = new Int16Array(N * N).fill(-1);
+    const prev = new Int16Array(N * N).fill(-1);
+    const q = [...sources];
+    for (const s of sources) dist[s] = 0;
+    for (let h = 0; h < q.length; h++) {
+      const i = q[h], x = i % N, y = (i / N) | 0;
+      for (let d = 0; d < 4; d++) {
+        if (w[i] & BIT[d]) continue;
+        const j = (y + DY[d]) * N + x + DX[d];
+        if (dist[j] < 0) { dist[j] = dist[i] + 1; prev[j] = i; q.push(j); }
+      }
+    }
+    return { dist, prev };
+  }
+
+  const pathTo = (prev, b) => { const p = []; for (let i = b; i !== -1; i = prev[i]) p.push(i); return p.reverse(); };
+  const md = (a, b, N) => Math.abs(a % N - b % N) + Math.abs(((a / N) | 0) - ((b / N) | 0));
+  const popcount = (v) => (v & 1) + ((v >> 1) & 1) + ((v >> 2) & 1) + ((v >> 3) & 1);
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // Size of the branch entered at `o` from `from`, and how close it gets to the exit.
+  function branch(w, N, o, from, ex) {
+    let count = 0, closest = 1e9;
+    const st = [[o, from]];
+    while (st.length) {
+      const [i, p] = st.pop();
+      count++;
+      closest = Math.min(closest, md(i, ex, N));
+      const x = i % N, y = (i / N) | 0;
+      for (let d = 0; d < 4; d++) {
+        if (w[i] & BIT[d]) continue;
+        const j = (y + DY[d]) * N + x + DX[d];
+        if (j !== p) st.push([j, i]);
+      }
+    }
+    return { count, closest };
+  }
+
+  // How badly does this maze punish "just head toward the exit"?
+  function deception(w, N, path, ex) {
+    let s = 0, wrongTurns = 0;
+    for (let k = 0; k < path.length - 1; k++) {
+      const i = path[k], j = path[k + 1], p = k ? path[k - 1] : -1;
+      const x = i % N, y = (i / N) | 0;
+      if (md(j, ex, N) > md(i, ex, N)) wrongTurns++;
+      for (let d = 0; d < 4; d++) {
+        if (w[i] & BIT[d]) continue;
+        const o = (y + DY[d]) * N + x + DX[d];
+        if (o === j || o === p) continue;
+        const b = branch(w, N, o, i, ex);
+        const tempting = md(o, ex, N) < md(j, ex, N);
+        s += tempting ? b.count * 1.2 + 8 : b.count * 0.3;
+        if (b.closest <= 2) s += 14;
+        if (b.closest <= 1) s += 10;
+      }
+    }
+    // the four start paths should all be big, so none looks obviously wrong
+    const sx = path[0] % N, sy = (path[0] / N) | 0;
+    let smallest = 1e9;
+    for (let d = 0; d < 4; d++) {
+      const o = (sy + DY[d]) * N + sx + DX[d];
+      smallest = Math.min(smallest, branch(w, N, o, path[0], ex).count);
+    }
+    s += smallest * 2.5;
+    // the right first move should not be the one pointing at the exit
+    if (md(path[1], ex, N) < md(path[0], ex, N)) s -= 60;
+    return s + wrongTurns * 6 + path.length * 1.5;
+  }
+
+  function buildLevel(N, nDecoys, nFakeCps) {
+    let best = null;
+    const tries = N > 20 ? 20 : 30;
+    const lo = Math.max(1, Math.floor(N * 0.3)), hi = Math.min(N - 2, Math.ceil(N * 0.7) - 1);
+    for (let t = 0; t < tries; t++) {
+      const s = (lo + ((Math.random() * (hi - lo + 1)) | 0)) + (lo + ((Math.random() * (hi - lo + 1)) | 0)) * N;
+      const w = gen(N, 0.5 + Math.random() * 0.4, s);
+      const { dist, prev } = bfs(w, N, [s]);
+      let maxD = 0;
+      const dead = [];
+      for (let i = 0; i < N * N; i++) {
+        if (i === s) continue;
+        maxD = Math.max(maxD, dist[i]);
+        if (popcount(w[i]) === 3) dead.push(i);
+      }
+      const far = dead.filter((i) => dist[i] >= 0.6 * maxD && md(i, s, N) >= N * 0.5);
+      if (!far.length) continue;
+      const ex = far[(Math.random() * far.length) | 0];
+      const path = pathTo(prev, ex);
+      const sc = deception(w, N, path, ex);
+      if (!best || sc > best.sc) best = { w, s, ex, path, sc, dead, dist, maxD };
+    }
+    const { w, s, ex, path, dead, dist, maxD } = best;
+
+    // decoy exits: other far dead ends, spread apart
+    const fakes = [];
+    for (const i of shuffle(dead.filter((i) => i !== ex && dist[i] >= 0.4 * maxD && md(i, ex, N) >= 3 && md(i, s, N) >= N / 3))) {
+      if (fakes.length >= nDecoys) break;
+      if (fakes.every((f) => md(f, i, N) >= 3)) fakes.push(i);
+    }
+
+    // checkpoints: some on the real route, the same number deep inside wrong branches
+    const cps = [0.3, 0.55, 0.8].map((f) => path[Math.round(f * (path.length - 1))]);
+    const depth = bfs(w, N, path).dist;
+    const taken = new Set([s, ex, ...fakes, ...cps]);
+    const offPath = shuffle([...Array(N * N).keys()].filter((i) => depth[i] >= 4 && !taken.has(i)));
+    const fakeCps = [];
+    for (const i of offPath) {
+      if (fakeCps.length >= nFakeCps) break;
+      if ([...cps, ...fakeCps].every((c) => md(c, i, N) >= 3)) fakeCps.push(i);
+    }
+    return { walls: w, start: s, exit: ex, steps: path.length - 1, decoys: fakes, checkpoints: [...cps, ...fakeCps] };
+  }
+
+  // ---------- Game flow ----------
+  function showOverlay(title, text, label, handler) {
+    ovT.textContent = title;
+    ovP.textContent = text;
+    ovB.textContent = label;
+    onOv = handler;
+    ov.hidden = false;
+    fogBtn.disabled = false;
+    ovB.focus({ preventScroll: true });
+  }
+
+  const levelLine = () =>
+    n + '×' + n + ' · ' + timeLimit + 's' +
+    (decoys.length ? ' · ' + decoys.length + ' fake' + (decoys.length > 1 ? 's' : '') : '') +
+    (fog ? ' · ×1.5' : '');
+
+  function newLevel(L) {
+    level = L;
+    n = 10 + Math.round((L - 1) * 16 / (MAX_LEVEL - 1));           // 10×10 → 26×26
+    const nDecoys = L < 2 ? 0 : Math.min(4, Math.floor(L / 4) + 1);
+    const lv = buildLevel(n, nDecoys, L < 3 ? 1 : 3);
+    walls = lv.walls; startIdx = lv.start; exitIdx = lv.exit; decoys = lv.decoys;
+    checkpoints = lv.checkpoints; minSteps = lv.steps; poofs = []; floaters = [];
+    trail = new Uint8Array(n * n);
+    cx = startIdx % n; cy = (startIdx / n) | 0; rx = cx; ry = cy; steps = 0; lastDir = null;
+    trail[startIdx] = 1;
+    const perStep = Math.max(0.48, 0.85 - 0.019 * L);
+    timeLimit = Math.round(minSteps * perStep + 6 + decoys.length * 3);
+    timeLeft = timeLimit;
+    state = 'ready';
+    showOverlay('Level ' + L, levelLine(), 'Go', () => {
+      levelFog = fog; state = 'playing'; ov.hidden = true; fogBtn.disabled = true; cv.focus({ preventScroll: true });
+    });
+  }
+
+  function win() {
+    const perfect = steps === minSteps;
+    let gain = level * 100 + Math.ceil(timeLeft) * 10 + (perfect ? 50 : 0);
+    if (levelFog) gain = Math.round(gain * 1.5);
+    score += gain;
+    if (score > best) { best = score; saveBest(); }
+    state = 'won';
+    padDir = null; keyStack = [];
+    if (level >= MAX_LEVEL) {
+      showOverlay('Escaped', score + ' pts', 'Play again', () => { score = 0; newLevel(1); });
+    } else {
+      showOverlay('Cleared', '+' + gain + (perfect ? ' · perfect' : ''), 'Level ' + (level + 1), () => newLevel(level + 1));
+    }
+  }
+
+  function lose() {
+    state = 'lost';
+    padDir = null; keyStack = [];
+    const fresh = score > 0 && score >= best;
+    showOverlay("Time's up", score + ' pts' + (fresh ? ' · new best' : ''), 'Again', () => { score = 0; newLevel(1); });
+  }
+
+  function tryMove(d) {
+    if (state !== 'playing') return false;
+    if (walls[cy * n + cx] & BIT[d]) return false;
+    cx += DX[d]; cy += DY[d];
+    steps++;
+    lastDir = d;
+    const i = cy * n + cx, now = performance.now();
+    trail[i] = 1;
+    if (checkpoints.includes(i)) {
+      checkpoints = checkpoints.filter((c) => c !== i);
+      timeLeft += CHECKPOINT_BONUS;
+      timeLimit = Math.max(timeLimit, timeLeft);
+      floaters.push({ i, t: now });
+      upUntil = now + 600;
+    }
+    if (i === exitIdx) win();
+    else if (decoys.includes(i)) {
+      decoys = decoys.filter((f) => f !== i);
+      poofs.push({ i, t: now });
+    }
+    return true;
+  }
+
+  // Holding a direction glides around corridor bends and stops at junctions.
+  function holdStep(d) {
+    if (tryMove(d)) return true;
+    if (lastDir === null) return false;
+    const i = cy * n + cx, back = (lastDir + 2) % 4, open = [];
+    for (let k = 0; k < 4; k++) if (k !== back && !(walls[i] & BIT[k])) open.push(k);
+    return open.length === 1 && open[0] !== (d + 2) % 4 ? tryMove(open[0]) : false;
+  }
+
+  // ---------- Input ----------
+  const KEYS = { ArrowUp: 0, w: 0, W: 0, ArrowRight: 1, d: 1, D: 1, ArrowDown: 2, s: 2, S: 2, ArrowLeft: 3, a: 3, A: 3 };
+  window.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key in KEYS) {
+      e.preventDefault();
+      if (e.repeat) return;
+      const d = KEYS[e.key];
+      keyStack = keyStack.filter((k) => k !== d);
+      keyStack.push(d);
+      tryMove(d);
+      nextStepAt = performance.now() + STEP_FIRST;
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key in KEYS) {
+      const d = KEYS[e.key];
+      keyStack = keyStack.filter((k) => k !== d);
+    }
+  });
+  window.addEventListener('blur', () => { keyStack = []; setPad(null); });
+
+  // One pointer drives the whole pad, so the thumb can roll from one arrow to the next.
+  const padButtons = [...dpad.querySelectorAll('button')];
+  let padPointer = null;
+  const dirAt = (x, y) => {
+    const el = document.elementFromPoint(x, y);
+    const b = el && el.closest && el.closest('.dpad button');
+    return b ? Number(b.dataset.d) : null;
+  };
+  function setPad(d) {
+    if (d === padDir) return;
+    padDir = d;
+    padButtons.forEach((b) => b.classList.toggle('on', Number(b.dataset.d) === d));
+    if (d !== null) { tryMove(d); nextStepAt = performance.now() + STEP_FIRST; }
+  }
+  dpad.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    padPointer = e.pointerId;
+    try { dpad.setPointerCapture(e.pointerId); } catch (err) {}
+    setPad(dirAt(e.clientX, e.clientY));
+  });
+  dpad.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== padPointer) return;
+    const d = dirAt(e.clientX, e.clientY);
+    if (d !== null) setPad(d);
+  });
+  const padEnd = (e) => { if (e.pointerId === padPointer) { padPointer = null; setPad(null); } };
+  dpad.addEventListener('pointerup', padEnd);
+  dpad.addEventListener('pointercancel', padEnd);
+  dpad.addEventListener('lostpointercapture', padEnd);
+  dpad.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  let anchor = null;
+  cv.addEventListener('pointerdown', (e) => {
+    anchor = { x: e.clientX, y: e.clientY };
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  cv.addEventListener('pointermove', (e) => {
+    if (!anchor) return;
+    const dx = e.clientX - anchor.x, dy = e.clientY - anchor.y;
+    const thr = Math.max(12, cell * 0.6);
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < thr) return;
+    const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0);
+    holdStep(d);
+    anchor = { x: e.clientX, y: e.clientY };
+  });
+  const endDrag = () => { anchor = null; };
+  cv.addEventListener('pointerup', endDrag);
+  cv.addEventListener('pointercancel', endDrag);
+
+  ovB.addEventListener('click', () => { if (onOv) onOv(); });
+  fogBtn.addEventListener('click', () => {
+    fog = !fog;
+    fogBtn.setAttribute('aria-pressed', String(fog));
+    fogBtn.textContent = fog ? 'Lantern on' : 'Lantern off';
+    if (state === 'ready') ovP.textContent = levelLine();
+  });
+
+  // ---------- Rendering ----------
+  function resize() {
+    size = Math.max(200, board.clientWidth);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(size * dpr);
+    cv.height = Math.round(size * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(board);
+  else window.addEventListener('resize', resize);
+
+  const cxOf = (i, m, cs) => m + ((i % n) + 0.5) * cs;
+  const cyOf = (i, m, cs) => m + (((i / n) | 0) + 0.5) * cs;
+
+  function diamond(i, m, cs, pulse) {
+    const ex = cxOf(i, m, cs), ey = cyOf(i, m, cs);
+    ctx.beginPath();
+    ctx.moveTo(ex, ey - cs * 0.34 - pulse);
+    ctx.lineTo(ex + cs * 0.34 + pulse, ey);
+    ctx.lineTo(ex, ey + cs * 0.34 + pulse);
+    ctx.lineTo(ex - cs * 0.34 - pulse, ey);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function draw(t) {
+    const m = Math.max(5, size * 0.014);
+    const cs = (size - 2 * m) / n;
+    cell = cs;
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = C.panel;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.fillStyle = C.trail;
+    for (let i = 0; i < n * n; i++) {
+      if (trail[i]) ctx.fillRect(m + (i % n) * cs, m + ((i / n) | 0) * cs, cs, cs);
+    }
+
+    // start ring
+    ctx.strokeStyle = C.dim;
+    ctx.lineWidth = Math.max(1.5, cs * 0.06);
+    ctx.beginPath();
+    ctx.arc(cxOf(startIdx, m, cs), cyOf(startIdx, m, cs), cs * 0.3, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // checkpoints (+5 s): small hollow squares
+    ctx.strokeStyle = C.runner;
+    ctx.lineWidth = Math.max(1.4, cs * 0.07);
+    for (const c of checkpoints) {
+      const h = cs * 0.17;
+      ctx.strokeRect(cxOf(c, m, cs) - h, cyOf(c, m, cs) - h, h * 2, h * 2);
+    }
+
+    ctx.strokeStyle = C.line;
+    ctx.lineWidth = Math.max(1.6, cs * 0.1);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let y = 0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        const w = walls[y * n + x], px = m + x * cs, py = m + y * cs;
+        if (y === 0 && (w & 1)) { ctx.moveTo(px, py); ctx.lineTo(px + cs, py); }
+        if (x === 0 && (w & 8)) { ctx.moveTo(px, py); ctx.lineTo(px, py + cs); }
+        if (w & 2) { ctx.moveTo(px + cs, py); ctx.lineTo(px + cs, py + cs); }
+        if (w & 4) { ctx.moveTo(px, py + cs); ctx.lineTo(px + cs, py + cs); }
+      }
+    }
+    ctx.stroke();
+
+    const pxr = m + (rx + 0.5) * cs, pyr = m + (ry + 0.5) * cs;
+
+    if (levelFog && state !== 'won') {
+      const g = ctx.createRadialGradient(pxr, pyr, cs * 1.1, pxr, pyr, cs * 3.4);
+      g.addColorStop(0, 'rgba(' + inkRGB + ',0)');
+      g.addColorStop(1, 'rgba(' + inkRGB + ',0.985)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+    }
+
+    // exits: the real one and the fakes look identical
+    const pulse = reduceMotion ? 0 : Math.sin(t / 280) * cs * 0.04;
+    ctx.fillStyle = C.exit;
+    ctx.globalAlpha = levelFog ? 0.75 : 1;
+    diamond(exitIdx, m, cs, pulse);
+    for (const f of decoys) diamond(f, m, cs, pulse);
+    ctx.globalAlpha = 1;
+
+    poofs = poofs.filter((p) => t - p.t < 500);
+    for (const p of poofs) {
+      const k = (t - p.t) / 500;
+      ctx.save();
+      ctx.globalAlpha = 1 - k;
+      ctx.strokeStyle = C.exit;
+      ctx.lineWidth = Math.max(1.5, cs * 0.08);
+      ctx.beginPath();
+      ctx.arc(cxOf(p.i, m, cs), cyOf(p.i, m, cs), cs * (0.3 + k * 0.6), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.shadowColor = C.runner;
+    ctx.shadowBlur = cs * 0.7;
+    ctx.fillStyle = C.runner;
+    ctx.beginPath();
+    ctx.arc(pxr, pyr, cs * 0.27, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // "+5" rising from a collected checkpoint
+    floaters = floaters.filter((f) => t - f.t < 800);
+    for (const f of floaters) {
+      const k = (t - f.t) / 800;
+      ctx.save();
+      ctx.globalAlpha = 1 - k;
+      ctx.fillStyle = C.runner;
+      ctx.font = '700 ' + Math.max(12, cs * 0.6) + 'px ' + tok('--font-mono');
+      ctx.textAlign = 'center';
+      ctx.fillText('+' + CHECKPOINT_BONUS, cxOf(f.i, m, cs), cyOf(f.i, m, cs) - cs * (0.5 + k * 0.9));
+      ctx.restore();
+    }
+  }
+
+  const el = { lvl: $('lvl'), grid: $('grid'), score: $('score'), best: $('best'), time: $('time'), bar: $('bar'), barwrap: $('barwrap') };
+  function updateHud(t) {
+    el.lvl.textContent = level + '/' + MAX_LEVEL;
+    el.grid.textContent = n + '×' + n;
+    el.score.textContent = score;
+    el.best.textContent = best;
+    el.time.textContent = timeLeft.toFixed(1);
+    const frac = Math.max(0, Math.min(1, timeLeft / timeLimit));
+    el.bar.style.transform = 'scaleX(' + frac + ')';
+    const up = t < upUntil, low = frac < 0.25 && !up;
+    el.barwrap.classList.toggle('low', low);
+    el.time.classList.toggle('low', low);
+    el.time.classList.toggle('up', up);
+  }
+
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min(0.1, (t - last) / 1000);
+    last = t;
+    if (state === 'playing') {
+      timeLeft -= dt;
+      if (timeLeft <= 0) { timeLeft = 0; lose(); }
+      else {
+        const held = padDir !== null ? padDir : (keyStack.length ? keyStack[keyStack.length - 1] : null);
+        if (held !== null && t >= nextStepAt) {
+          holdStep(held);
+          nextStepAt = t + STEP_REPEAT;
+        }
+      }
+    }
+    const k = 1 - Math.exp(-dt * 30);
+    rx += (cx - rx) * k;
+    ry += (cy - ry) * k;
+    if (Math.abs(cx - rx) < 0.002) rx = cx;
+    if (Math.abs(cy - ry) < 0.002) ry = cy;
+    draw(t);
+    updateHud(t);
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  newLevel(1);
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
